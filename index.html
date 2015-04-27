@@ -88,10 +88,59 @@
         color: white;
     }
     /* SchoolBox ENDS */
+    
+    .search-school-wrapper {
+        float: right;
+        font-size: 12px;
+    }
+    
+    .search-school-input {
+        padding: 0px 4px;
+        width: 180px;
+    }
+    
+    .search-school-div {
+        background-color: #fff;
+        border: 1px solid #C3C3C3;
+        border-top: none;
+        color: #005EAC;
+        display: none;
+        font-size: 12px;
+        font-weight: normal;
+        max-height: 200px;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        position: absolute;
+        width: 188px;
+    }
+    
+    .search-school-list li {
+        cursor: pointer;
+        height: 20px;
+        line-height: 20px;
+        padding-left: 5px;
+    }
+    
+    .search-school-list li.active,
+    .search-school-list li.hover,
+    .search-school-list li:hover {
+        background-color: #005EAC;
+        color: white;
+    }
+    
+    .search-school-empty {
+        display: none;
+        padding: 5px 0;
+        text-align: center;
+    }
+    .inline-block{
+        display: inline-block;
+    }
     </style>
 </head>
 
 <body>
+    <div class="search-school-wrapper">
     <div id="mainContainer">
         <div id="formResult">
             <input type="text" id="schoolInput" readonly="">
@@ -115,6 +164,20 @@
                 '<div class="school-box-schools"></div>' +
                 '</div>'
             );
+            var $searchSchoolCopy=$(
+                '<div class="search-school-wrapper">'+
+                    '<div class="inline-block"><label>搜索：</label></div>'+
+                    '<div class="inline-block">'+
+                        '<input type="text" class="search-school-input"/>'+
+                        '<div class="search-school-div">'+
+                            '<ul class="search-school-list"></ul>'+
+                            '<div class="search-school-empty">'+
+                                '<span class="text-error">找不到该学校</span>'+
+                            '</div>'+
+                        '</div>'+
+                    '</div>'+
+                '</div>'
+                );
 
             var $provinceCopy = $('<a href="javascript:void(0)" class="province-item"></a>');
             var $schoolCopy = $('<a href="javascript:void(0)" class="school-item"></a>');
@@ -149,10 +212,14 @@
                 }
             }
 
-
+            var initSearchSchool=function(instance){
+                var $parent = $(instance.opts.appendTo);
+                $parent.find('.school-box-header').append($searchSchoolCopy.clone());
+            }
             var init = function(instance) {
                 var $parent = $(instance.opts.appendTo);
                 $parent.append($schoolBoxCopy.clone());
+                
 
                 var $provinceDiv = $parent.find('.school-box-provinces');
                 var $schoolDiv = $parent.find('.school-box-schools');
@@ -173,8 +240,8 @@
                     // $('.school-box').slideUp();
                     // $('#schoolInput').val($(this).text());
                     // $('#schoolId').val($(this).attr('schoolid'));
-                     // 自定义事件回调
-                     if(instance.opts.schoolClickCallback){
+                    // 自定义事件回调
+                    if (instance.opts.schoolClickCallback) {
                         instance.opts.schoolClickCallback.apply(this, []);
                     }
                     instance.fire('schoolChosen', {
@@ -183,7 +250,13 @@
                     });
                     // 自动收起
                     instance.hide();
-                    })
+                })
+
+
+                //判断有没有搜索
+                if(instance.opts.searchSchool=='true'){
+                    initSearchSchool(instance);
+                }
             }
 
             return function(options) {
@@ -200,40 +273,39 @@
         })()
 
         SchoolBox.prototype = {
-                on: function(type, handler){
-                    console.log(this.handlers)
-                    if(typeof this.handlers[type] === 'undefined'){
-                        this.handlers[type] = [];
-                    }
-                    this.handlers[type].push(handler);
-                },
-                fire: function(type, data){
-                    if(this.handlers[type] instanceof Array){
-                        var handlers = this.handlers[type];
-                        for(var i=0, len=handlers.length; i<len; i++){
-                            handlers[i](data);
-                        }
-                    }
-                },
-                init: function() {
-                    $(this.opts.appendTo).find('.school-box-provinces').find('a').first().click();
-                },
-                show: function() {
-                    $(this.opts.appendTo).find('.school-box').slideDown();
-                },
-                hide: function() {
-                    $(this.opts.appendTo).find('.school-box').slideUp();
+            on: function(type, handler) {
+
+                if (typeof this.handlers[type] === 'undefined') {
+                    this.handlers[type] = [];
                 }
+                this.handlers[type].push(handler);
+            },
+            fire: function(type, data) {
+                if (this.handlers[type] instanceof Array) {
+                    var handlers = this.handlers[type];
+                    for (var i = 0, len = handlers.length; i < len; i++) {
+
+                        handlers[i](data);
+                    }
+                }
+            },
+            init: function() {
+                $(this.opts.appendTo).find('.school-box-provinces').find('a').first().click();
+            },
+            show: function() {
+                $(this.opts.appendTo).find('.school-box').slideDown();
+            },
+            hide: function() {
+                $(this.opts.appendTo).find('.school-box').slideUp();
             }
+        }
 
         //export
         window.SchoolBox = SchoolBox;
 
     })(jQuery);
     </script>
-
     <script>
-
     (function() {
         //目标对象
         var $schoolInput = $('#schoolInput');
@@ -241,11 +313,12 @@
         var $chooseBoxLink = $('#openSchoolBoxLink');
 
         var schoolBox = new SchoolBox({
-            appendTo: '#schoolBoxWrapper'
+            appendTo: '#schoolBoxWrapper',
+            searchSchool:'true'
         });
 
-         // 监听自定义事件
-        schoolBox.on('schoolChosen', function(data){
+        // 监听自定义事件
+        schoolBox.on('schoolChosen', function(data) {
             $schoolInput.val(data.schoolName);
             $schoolId.val(data.schoolId);
             $chooseBoxLink.show();
@@ -256,9 +329,7 @@
             $(this).hide();
         });
     })();
-
     </script>
-
 </body>
 
 </html>
