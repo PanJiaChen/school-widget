@@ -170,10 +170,20 @@
                 })
 
                 $(document).on('click', '.school-item', function() {
-                    $('.school-box').slideUp();
-                    $('#schoolInput').val($(this).text());
-                    $('#schoolId').val($(this).attr('schoolid'));
-                })
+                    // $('.school-box').slideUp();
+                    // $('#schoolInput').val($(this).text());
+                    // $('#schoolId').val($(this).attr('schoolid'));
+                     // 自定义事件回调
+                     if(instance.opts.schoolClickCallback){
+                        instance.opts.schoolClickCallback.apply(this, []);
+                    }
+                    instance.fire('schoolChosen', {
+                        schoolId: $(this).attr('schoolid'),
+                        schoolName: $(this).text()
+                    });
+                    // 自动收起
+                    instance.hide();
+                    })
             }
 
             return function(options) {
@@ -181,12 +191,30 @@
                     appendTo: 'body'
                 }, options);
 
+                // 自定义事件观察者
+                this.handlers = {};
+
                 init(this);
                 this.init();
             }
         })()
 
         SchoolBox.prototype = {
+                on: function(type, handler){
+                    console.log(this.handlers)
+                    if(typeof this.handlers[type] === 'undefined'){
+                        this.handlers[type] = [];
+                    }
+                    this.handlers[type].push(handler);
+                },
+                fire: function(type, data){
+                    if(this.handlers[type] instanceof Array){
+                        var handlers = this.handlers[type];
+                        for(var i=0, len=handlers.length; i<len; i++){
+                            handlers[i](data);
+                        }
+                    }
+                },
                 init: function() {
                     $(this.opts.appendTo).find('.school-box-provinces').find('a').first().click();
                 },
@@ -207,18 +235,28 @@
     <script>
 
     (function() {
+        //目标对象
+        var $schoolInput = $('#schoolInput');
+        var $schoolId = $('#schoolId');
+        var $chooseBoxLink = $('#openSchoolBoxLink');
+
         var schoolBox = new SchoolBox({
             appendTo: '#schoolBoxWrapper'
         });
 
+         // 监听自定义事件
+        schoolBox.on('schoolChosen', function(data){
+            $schoolInput.val(data.schoolName);
+            $schoolId.val(data.schoolId);
+            $chooseBoxLink.show();
+        });
 
-        var $chooseBoxLink = $('#openSchoolBoxLink');
         $chooseBoxLink.click(function() {
             schoolBox.show();
             $(this).hide();
         });
     })();
-    
+
     </script>
 
 </body>
