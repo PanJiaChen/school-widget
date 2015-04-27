@@ -1,50 +1,58 @@
-<html><!--@(window)--><!--@(document)--><head>
+<html>
+<!--@(window)-->
+<!--@(document)-->
+
+<head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>学校选择器v2</title>
-
     <style type="text/css">
-    .hide{
+    .hide {
         display: none;
     }
-    #mainContainer{
+    
+    #mainContainer {
         margin: 20px auto;
         position: relative;
         width: 1000px;
     }
-    #formResult{
+    
+    #formResult {
         margin-bottom: 10px;
     }
-
-
     /* SchoolBox STARTS */
-    .school-box-wrapper{
+    
+    .school-box-wrapper {
         margin: 10px 0;
     }
-    .school-box{
+    
+    .school-box {
         background-color: white;
         border: 1px solid #005EAC;
         width: 650px;
     }
-    .school-box-header{
+    
+    .school-box-header {
         background: #3777BC;
         color: white;
         font-size: 14px;
         font-weight: bold;
         padding: 5px 10px;
     }
+    
     .school-box-provinces,
-    .school-box-schools{
+    .school-box-schools {
         border: 1px solid #C3C3C3;
         margin: 5px 10px 10px 10px;
     }
-    .school-box-schools{
+    
+    .school-box-schools {
         height: 200px;
         overflow-x: hidden;
         overflow-y: auto;
     }
-
+    
     .school-box-provinces a,
-    .school-box-schools a{
+    .school-box-schools a {
         color: #005EAC;
         cursor: pointer;
         display: inline-block;
@@ -53,120 +61,166 @@
         line-height: 18px;
         text-decoration: none;
     }
-    .school-box-provinces a{
+    
+    .school-box-provinces a {
         margin: 2px 5px;
         padding: 1px;
     }
-    .school-box-provinces a:hover{
+    
+    .school-box-provinces a:hover {
         text-decoration: underline;
     }
-    .school-box-provinces a.chosen{
+    
+    .school-box-provinces a.chosen {
         background-color: #005EAC;
         color: white;
     }
-    .school-box-schools a{
+    
+    .school-box-schools a {
         margin: 4px 12px;
         overflow: hidden;
         padding-left: 10px;
         width: 160px;
     }
-    .school-box-schools a:hover{
+    
+    .school-box-schools a:hover {
         background-color: #005EAC;
         color: white;
     }
     /* SchoolBox ENDS */
     </style>
 </head>
+
 <body>
     <div id="mainContainer">
         <div id="formResult">
             <input type="text" id="schoolInput" readonly="">
             <input type="text" id="schoolId" readonly="">
-            <a href="javascript:void(0)" class="hide" id="openSchoolBoxLink" style="display: none;">重新选择</a>
+            <a href="javascript:void(0)" class="hide" id="openSchoolBoxLink" style="display: inline;">重新选择</a>
         </div>
-
-        <div class="school-box-wrapper">
-        </div>
+        <div id="schoolBoxWrapper"></div>
     </div>
-
-
     <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="school-list.js"></script>
     <script type="text/javascript">
-    (function(){
-        
+    (function() {
 
-        var SchoolBox=(function(){
+
+        var SchoolBox = (function() {
 
             var $schoolBoxCopy = $(
-                '<div class="school-box">' + 
-                    '<div class="school-box-header">选择学校</div>' + 
-                    '<div class="school-box-provinces"></div>' + 
-                    '<div class="school-box-schools"></div>' + 
+                '<div class="school-box">' +
+                '<div class="school-box-header">选择学校</div>' +
+                '<div class="school-box-provinces"></div>' +
+                '<div class="school-box-schools"></div>' +
                 '</div>'
             );
-            
+
             var $provinceCopy = $('<a href="javascript:void(0)" class="province-item"></a>');
             var $schoolCopy = $('<a href="javascript:void(0)" class="school-item"></a>');
 
             var provinces = SCHOOL_LIST;
-            var provincesLength=provinces.length;
+            var provincesLength = provinces.length;
 
-            var initProvinces=function(){
-                
-                for(var i=0;i<provincesLength;i++){
-                    $provinceItemCopy=$provinceCopy.clone();
+            var initProvinces = function($provinceDiv) {
+
+                for (var i = 0; i < provincesLength; i++) {
+                    $provinceItemCopy = $provinceCopy.clone();
                     $provinceItemCopy.attr('provinceId', provinces[i].id).text(provinces[i].name);
-                    $('.school-box-provinces').append($provinceItemCopy)
+                    $provinceDiv.append($provinceItemCopy)
                 }
             }
 
-            var initSchools=function(province ){
+            var initSchools = function($schoolDiv, province) {
 
-                $('.school-box-schools').empty();
-                for(var i=0,sLenght=province.school.length;i<sLenght;i++){
-                    var $schoolItemCopy =$schoolCopy.clone();
+                $schoolDiv.empty();
+                for (var i = 0, sLenght = province.school.length; i < sLenght; i++) {
+                    var $schoolItemCopy = $schoolCopy.clone();
                     $schoolItemCopy.attr('schoolId', province.school[i].id).text(province.school[i].name);
-                    $('.school-box-schools').append($schoolItemCopy)
+                    $schoolDiv.append($schoolItemCopy)
                 }
             }
 
-            var getProvincesID=function(clickProvinceId){
-                for(var i=0;i<provincesLength;i++){
-                    if(clickProvinceId==provinces[i].id){
+            var getProvincesID = function(clickProvinceId) {
+                for (var i = 0; i < provincesLength; i++) {
+                    if (clickProvinceId == provinces[i].id) {
                         return provinces[i]
                     }
                 }
             }
 
-            $(document).on('click','.province-item',function(){
-                $(this).addClass('chosen');
-                var clickProvinceId=$(this).attr('provinceId');
-                
-                var province =getProvincesID(clickProvinceId);
-                initSchools(province )
 
-            })
-            
+            var init = function(instance) {
+                var $parent = $(instance.opts.appendTo);
+                $parent.append($schoolBoxCopy.clone());
 
-            $(document).on('click','.school-item',function(){
-                $('.school-box').slideUp();
-                $('#schoolInput').val($(this).text());
-                $('#schoolId').val($(this).attr('schoolid'));
+                var $provinceDiv = $parent.find('.school-box-provinces');
+                var $schoolDiv = $parent.find('.school-box-schools');
+
+                initProvinces($provinceDiv);
 
 
-            })
+                $provinceDiv.on('click', 'a', function() {
+                    $(this).addClass('chosen').siblings().removeClass('chosen');
+                    var clickProvinceId = $(this).attr('provinceId');
 
-            var init=function(){
-                $('.school-box-wrapper').append($schoolBoxCopy);
-                initProvinces();
+                    var province = getProvincesID(clickProvinceId);
+                    initSchools($schoolDiv, province)
+
+                })
+
+                $(document).on('click', '.school-item', function() {
+                    $('.school-box').slideUp();
+                    $('#schoolInput').val($(this).text());
+                    $('#schoolId').val($(this).attr('schoolid'));
+                })
             }
 
-            init();
+            return function(options) {
+                this.opts = $.extend({
+                    appendTo: 'body'
+                }, options);
 
+                init(this);
+                this.init();
+            }
         })()
-       
-    })();
+
+        SchoolBox.prototype = {
+                init: function() {
+                    $(this.opts.appendTo).find('.school-box-provinces').find('a').first().click();
+                },
+                show: function() {
+                    $(this.opts.appendTo).find('.school-box').slideDown();
+                },
+                hide: function() {
+                    $(this.opts.appendTo).find('.school-box').slideUp();
+                }
+            }
+
+        //export
+        window.SchoolBox = SchoolBox;
+
+    })(jQuery);
     </script>
 
-</body></html>
+    <script>
+
+    (function() {
+        var schoolBox = new SchoolBox({
+            appendTo: '#schoolBoxWrapper'
+        });
+
+
+        var $chooseBoxLink = $('#openSchoolBoxLink');
+        $chooseBoxLink.click(function() {
+            schoolBox.show();
+            $(this).hide();
+        });
+    })();
+    
+    </script>
+
+</body>
+
+</html>
