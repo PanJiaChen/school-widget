@@ -184,6 +184,7 @@
 
             var provinces = SCHOOL_LIST;
             var provincesLength = provinces.length;
+            var $searchInput=$('.search-school-input');
 
             var initProvinces = function($provinceDiv) {
 
@@ -216,6 +217,21 @@
                 var $parent = $(instance.opts.appendTo);
                 $parent.find('.school-box-header').append($searchSchoolCopy.clone());
             }
+
+            $('.school-box').on('input propertychange', '$searchInput',function(event){
+                // var keywords = $.trim($(this).val());
+                var keywords=$(this).val();
+                consol.log(keywords)
+                // 空格or拼音没输完时暂不search
+                // if(keywords.length == 0 || keywords.indexOf("'") > -1){
+                //     $searchDiv.hide();
+                //     return false;
+                // }
+
+                // searchSchool(keywords, $searchDiv, $searchList, $searchEmpty);
+            });
+
+
             var init = function(instance) {
                 var $parent = $(instance.opts.appendTo);
                 $parent.append($schoolBoxCopy.clone());
