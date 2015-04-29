@@ -133,7 +133,8 @@
         padding: 5px 0;
         text-align: center;
     }
-    .inline-block{
+    
+    .inline-block {
         display: inline-block;
     }
     </style>
@@ -141,211 +142,220 @@
 
 <body>
     <div class="search-school-wrapper">
-    <div id="mainContainer">
-        <div id="formResult">
-            <input type="text" id="schoolInput" readonly="">
-            <input type="text" id="schoolId" readonly="">
-            <a href="javascript:void(0)" class="hide" id="openSchoolBoxLink" style="display: inline;">重新选择</a>
+        <div id="mainContainer">
+            <div id="formResult">
+                <input type="text" id="schoolInput" readonly="">
+                <input type="text" id="schoolId" readonly="">
+                <a href="javascript:void(0)" class="hide" id="openSchoolBoxLink" style="display: inline;">重新选择</a>
+            </div>
+            <div id="schoolBoxWrapper"></div>
         </div>
-        <div id="schoolBoxWrapper"></div>
-    </div>
-    <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="school-list.js"></script>
-    <script type="text/javascript">
-    (function() {
+        <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="school-list.js"></script>
+        <script type="text/javascript">
+        (function() {
 
 
-        var SchoolBox = (function() {
+            var SchoolBox = (function() {
 
-            var $schoolBoxCopy = $(
-                '<div class="school-box">' +
-                '<div class="school-box-header">选择学校</div>' +
-                '<div class="school-box-provinces"></div>' +
-                '<div class="school-box-schools"></div>' +
-                '</div>'
-            );
-            var $searchSchoolCopy=$(
-                '<div class="search-school-wrapper">'+
-                    '<div class="inline-block"><label>搜索：</label></div>'+
-                    '<div class="inline-block">'+
-                        '<input type="text" class="search-school-input"/>'+
-                        '<div class="search-school-div">'+
-                            '<ul class="search-school-list"></ul>'+
-                            '<div class="search-school-empty">'+
-                                '<span class="text-error">找不到该学校</span>'+
-                            '</div>'+
-                        '</div>'+
-                    '</div>'+
-                '</div>'
+                var $schoolBoxCopy = $(
+                    '<div class="school-box">' +
+                    '<div class="school-box-header">选择学校</div>' +
+                    '<div class="school-box-provinces"></div>' +
+                    '<div class="school-box-schools"></div>' +
+                    '</div>'
+                );
+                var $searchSchoolCopy = $(
+                    '<div class="search-school-wrapper">' +
+                    '<div class="inline-block"><label>搜索：</label></div>' +
+                    '<div class="inline-block">' +
+                    '<input type="text" class="search-school-input"/>' +
+                    '<div class="search-school-div">' +
+                    '<ul class="search-school-list"></ul>' +
+                    '<div class="search-school-empty">' +
+                    '<span class="text-error">找不到该学校</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>'
                 );
 
-            var $provinceCopy = $('<a href="javascript:void(0)" class="province-item"></a>');
-            var $schoolCopy = $('<a href="javascript:void(0)" class="school-item"></a>');
+                var $provinceCopy = $('<a href="javascript:void(0)" class="province-item"></a>');
+                var $schoolCopy = $('<a href="javascript:void(0)" class="school-item"></a>');
 
-            var provinces = SCHOOL_LIST;
-            var provincesLength = provinces.length;
-            var $searchInput=$('.search-school-input');
+                var provinces = SCHOOL_LIST;
+                console.log(provinces)
+                var provincesLength = provinces.length;
+                var $searchInput = $('.search-school-input');
 
-            var initProvinces = function($provinceDiv) {
+                var initProvinces = function($provinceDiv) {
 
-                for (var i = 0; i < provincesLength; i++) {
-                    $provinceItemCopy = $provinceCopy.clone();
-                    $provinceItemCopy.attr('provinceId', provinces[i].id).text(provinces[i].name);
-                    $provinceDiv.append($provinceItemCopy)
-                }
-            }
-
-            var initSchools = function($schoolDiv, province) {
-
-                $schoolDiv.empty();
-                for (var i = 0, sLenght = province.school.length; i < sLenght; i++) {
-                    var $schoolItemCopy = $schoolCopy.clone();
-                    $schoolItemCopy.attr('schoolId', province.school[i].id).text(province.school[i].name);
-                    $schoolDiv.append($schoolItemCopy)
-                }
-            }
-
-            var getProvincesID = function(clickProvinceId) {
-                for (var i = 0; i < provincesLength; i++) {
-                    if (clickProvinceId == provinces[i].id) {
-                        return provinces[i]
+                    for (var i = 0; i < provincesLength; i++) {
+                        $provinceItemCopy = $provinceCopy.clone();
+                        $provinceItemCopy.attr('provinceId', provinces[i].id).text(provinces[i].name);
+                        $provinceDiv.append($provinceItemCopy)
                     }
                 }
+
+                var initSchools = function($schoolDiv, province) {
+
+                    $schoolDiv.empty();
+                    for (var i = 0, sLenght = province.school.length; i < sLenght; i++) {
+                        var $schoolItemCopy = $schoolCopy.clone();
+                        $schoolItemCopy.attr('schoolId', province.school[i].id).text(province.school[i].name);
+                        $schoolDiv.append($schoolItemCopy)
+                    }
+                }
+
+                var getProvincesID = function(clickProvinceId) {
+                    for (var i = 0; i < provincesLength; i++) {
+                        if (clickProvinceId == provinces[i].id) {
+                            return provinces[i]
+                        }
+                    }
+                }
+
+                var initSearchSchool = function(instance) {
+                    var $parent = $(instance.opts.appendTo);
+                    $parent.find('.school-box-header').append($searchSchoolCopy.clone());
+                }
+
+
+
+                var init = function(instance) {
+                    var $parent = $(instance.opts.appendTo);
+                    $parent.append($schoolBoxCopy.clone());
+
+
+                    var $provinceDiv = $parent.find('.school-box-provinces');
+                    var $schoolDiv = $parent.find('.school-box-schools');
+
+                    initProvinces($provinceDiv);
+
+
+                    $provinceDiv.on('click', 'a', function() {
+                        $(this).addClass('chosen').siblings().removeClass('chosen');
+                        var clickProvinceId = $(this).attr('provinceId');
+
+                        var province = getProvincesID(clickProvinceId);
+                        initSchools($schoolDiv, province)
+
+                    })
+
+                    $schoolDiv.on('click', '.school-item', function() {
+                        // $('.school-box').slideUp();
+                        // $('#schoolInput').val($(this).text());
+                        // $('#schoolId').val($(this).attr('schoolid'));
+                        // 自定义事件回调
+                        if (instance.opts.schoolClickCallback) {
+                            instance.opts.schoolClickCallback.apply(this, []);
+                        }
+                        instance.fire('schoolChosen', {
+                            schoolId: $(this).attr('schoolid'),
+                            schoolName: $(this).text()
+                        });
+                        // 自动收起
+                        instance.hide();
+                    })
+
+
+                    //判断有没有搜索
+                    if (instance.opts.searchSchool == 'true') {
+                        initSearchSchool(instance);
+                        var $schoolSearch = $parent.find('.search-school-input');
+                    }
+
+                    //监听搜索框
+                    $schoolSearch.on('input propertychange', function(event) {
+                        var keywords = $.trim($(this).val());
+                        var result = [];
+                        if (keywords.length > 0) {
+                            for (var i = 0; i < provincesLength; i++) {
+                                for (var j = 0, target = provinces[i].school; j < target.length; j++) {
+
+                                    if (target[j].name.indexOf(keywords) != '-1') {
+                                        result.push(target[j].name);
+                                    }
+                                }
+                            }
+                        }
+
+                        console.log(result)
+                            // searchSchool(keywords, $searchDiv, $searchList, $searchEmpty);
+                    });
+                }
+
+                return function(options) {
+                    this.opts = $.extend({
+                        appendTo: 'body'
+                    }, options);
+
+                    // 自定义事件观察者
+                    this.handlers = {};
+
+                    init(this);
+                    this.init();
+                }
+            })()
+
+            SchoolBox.prototype = {
+                on: function(type, handler) {
+
+                    if (typeof this.handlers[type] === 'undefined') {
+                        this.handlers[type] = [];
+                    }
+                    this.handlers[type].push(handler);
+                },
+                fire: function(type, data) {
+                    if (this.handlers[type] instanceof Array) {
+                        var handlers = this.handlers[type];
+                        for (var i = 0, len = handlers.length; i < len; i++) {
+
+                            handlers[i](data);
+                        }
+                    }
+                },
+                init: function() {
+                    $(this.opts.appendTo).find('.school-box-provinces').find('a').first().click();
+                },
+                show: function() {
+                    $(this.opts.appendTo).find('.school-box').slideDown();
+                },
+                hide: function() {
+                    $(this.opts.appendTo).find('.school-box').slideUp();
+                }
             }
 
-            var initSearchSchool=function(instance){
-                var $parent = $(instance.opts.appendTo);
-                $parent.find('.school-box-header').append($searchSchoolCopy.clone());
-            }
+            //export
+            window.SchoolBox = SchoolBox;
 
-            $('.school-box').on('input propertychange', '$searchInput',function(event){
-                // var keywords = $.trim($(this).val());
-                var keywords=$(this).val();
-                consol.log(keywords)
-                // 空格or拼音没输完时暂不search
-                // if(keywords.length == 0 || keywords.indexOf("'") > -1){
-                //     $searchDiv.hide();
-                //     return false;
-                // }
+        })(jQuery);
+        </script>
+        <script>
+        (function() {
+            //目标对象
+            var $schoolInput = $('#schoolInput');
+            var $schoolId = $('#schoolId');
+            var $chooseBoxLink = $('#openSchoolBoxLink');
 
-                // searchSchool(keywords, $searchDiv, $searchList, $searchEmpty);
+            var schoolBox = new SchoolBox({
+                appendTo: '#schoolBoxWrapper',
+                searchSchool: 'true'
             });
 
+            // 监听自定义事件
+            schoolBox.on('schoolChosen', function(data) {
+                $schoolInput.val(data.schoolName);
+                $schoolId.val(data.schoolId);
+                $chooseBoxLink.show();
+            });
 
-            var init = function(instance) {
-                var $parent = $(instance.opts.appendTo);
-                $parent.append($schoolBoxCopy.clone());
-                
-
-                var $provinceDiv = $parent.find('.school-box-provinces');
-                var $schoolDiv = $parent.find('.school-box-schools');
-
-                initProvinces($provinceDiv);
-
-
-                $provinceDiv.on('click', 'a', function() {
-                    $(this).addClass('chosen').siblings().removeClass('chosen');
-                    var clickProvinceId = $(this).attr('provinceId');
-
-                    var province = getProvincesID(clickProvinceId);
-                    initSchools($schoolDiv, province)
-
-                })
-
-                $(document).on('click', '.school-item', function() {
-                    // $('.school-box').slideUp();
-                    // $('#schoolInput').val($(this).text());
-                    // $('#schoolId').val($(this).attr('schoolid'));
-                    // 自定义事件回调
-                    if (instance.opts.schoolClickCallback) {
-                        instance.opts.schoolClickCallback.apply(this, []);
-                    }
-                    instance.fire('schoolChosen', {
-                        schoolId: $(this).attr('schoolid'),
-                        schoolName: $(this).text()
-                    });
-                    // 自动收起
-                    instance.hide();
-                })
-
-
-                //判断有没有搜索
-                if(instance.opts.searchSchool=='true'){
-                    initSearchSchool(instance);
-                }
-            }
-
-            return function(options) {
-                this.opts = $.extend({
-                    appendTo: 'body'
-                }, options);
-
-                // 自定义事件观察者
-                this.handlers = {};
-
-                init(this);
-                this.init();
-            }
-        })()
-
-        SchoolBox.prototype = {
-            on: function(type, handler) {
-
-                if (typeof this.handlers[type] === 'undefined') {
-                    this.handlers[type] = [];
-                }
-                this.handlers[type].push(handler);
-            },
-            fire: function(type, data) {
-                if (this.handlers[type] instanceof Array) {
-                    var handlers = this.handlers[type];
-                    for (var i = 0, len = handlers.length; i < len; i++) {
-
-                        handlers[i](data);
-                    }
-                }
-            },
-            init: function() {
-                $(this.opts.appendTo).find('.school-box-provinces').find('a').first().click();
-            },
-            show: function() {
-                $(this.opts.appendTo).find('.school-box').slideDown();
-            },
-            hide: function() {
-                $(this.opts.appendTo).find('.school-box').slideUp();
-            }
-        }
-
-        //export
-        window.SchoolBox = SchoolBox;
-
-    })(jQuery);
-    </script>
-    <script>
-    (function() {
-        //目标对象
-        var $schoolInput = $('#schoolInput');
-        var $schoolId = $('#schoolId');
-        var $chooseBoxLink = $('#openSchoolBoxLink');
-
-        var schoolBox = new SchoolBox({
-            appendTo: '#schoolBoxWrapper',
-            searchSchool:'true'
-        });
-
-        // 监听自定义事件
-        schoolBox.on('schoolChosen', function(data) {
-            $schoolInput.val(data.schoolName);
-            $schoolId.val(data.schoolId);
-            $chooseBoxLink.show();
-        });
-
-        $chooseBoxLink.click(function() {
-            schoolBox.show();
-            $(this).hide();
-        });
-    })();
-    </script>
+            $chooseBoxLink.click(function() {
+                schoolBox.show();
+                $(this).hide();
+            });
+        })();
+        </script>
 </body>
 
 </html>
