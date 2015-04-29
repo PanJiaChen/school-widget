@@ -217,9 +217,38 @@
 
                 var initSearchSchool = function(instance) {
                     var $parent = $(instance.opts.appendTo);
+                    
+                    
                     $parent.find('.school-box-header').append($searchSchoolCopy.clone());
+
+                    //监听搜索框
+                    var $schoolSearch = $parent.find('.search-school-input');
+                    var $schoolList = $parent.find('.search-school-list');
+                    var $schoolEmpty = $parent.find('.search-school-empty');
+                    $schoolSearch.on('input propertychange', function(event) {
+                        var keywords = $.trim($(this).val());
+                        searchSchool(keywords,$schoolList,$schoolList);
+
+                    });
                 }
 
+                var searchSchool = function(keywords,$schoolList,$schoolEmpty) {
+                    var result = [];
+                    if (keywords.length > 0) {
+                        for (var i = 0; i < provincesLength; i++) {
+                            for (var j = 0, target = provinces[i].school; j < target.length; j++) {
+                                if (target[j].name.indexOf(keywords) != '-1') {
+                                    result.push(target[j].name);
+                                }
+                            }
+                        }
+                    }
+                    console.log(result)
+                    if (result.length <= 0) {
+                        $schoolEmpty.show();
+                    }
+                    console.log(result.length)
+                }
 
 
                 var init = function(instance) {
@@ -262,27 +291,8 @@
                     //判断有没有搜索
                     if (instance.opts.searchSchool == 'true') {
                         initSearchSchool(instance);
-                        var $schoolSearch = $parent.find('.search-school-input');
                     }
 
-                    //监听搜索框
-                    $schoolSearch.on('input propertychange', function(event) {
-                        var keywords = $.trim($(this).val());
-                        var result = [];
-                        if (keywords.length > 0) {
-                            for (var i = 0; i < provincesLength; i++) {
-                                for (var j = 0, target = provinces[i].school; j < target.length; j++) {
-
-                                    if (target[j].name.indexOf(keywords) != '-1') {
-                                        result.push(target[j].name);
-                                    }
-                                }
-                            }
-                        }
-
-                        console.log(result)
-                            // searchSchool(keywords, $searchDiv, $searchList, $searchEmpty);
-                    });
                 }
 
                 return function(options) {
