@@ -89,9 +89,12 @@
     }
     /* SchoolBox ENDS */
     
+    .search-school-container {
+        font-size: 12px;
+    }
+    
     .search-school-wrapper {
         float: right;
-        font-size: 12px;
     }
     
     .search-school-input {
@@ -114,11 +117,22 @@
         width: 188px;
     }
     
+    .search-school-list {
+        z-index: 99;
+        position: relative;
+        padding-left: 5px;
+    }
+    
     .search-school-list li {
         cursor: pointer;
         height: 20px;
         line-height: 20px;
         padding-left: 5px;
+        list-style: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-left: 0px;
     }
     
     .search-school-list li.active,
@@ -141,7 +155,7 @@
 </head>
 
 <body>
-    <div class="search-school-wrapper">
+    <div class="search-school-container">
         <div id="mainContainer">
             <div id="formResult">
                 <input type="text" id="schoolInput" readonly="">
@@ -154,7 +168,6 @@
         <script type="text/javascript" src="school-list.js"></script>
         <script type="text/javascript">
         (function() {
-
 
             var SchoolBox = (function() {
 
@@ -184,7 +197,7 @@
                 var $schoolCopy = $('<a href="javascript:void(0)" class="school-item"></a>');
 
                 var provinces = SCHOOL_LIST;
-                console.log(provinces)
+
                 var provincesLength = provinces.length;
                 var $searchInput = $('.search-school-input');
 
@@ -217,39 +230,54 @@
 
                 var initSearchSchool = function(instance) {
                     var $parent = $(instance.opts.appendTo);
-                    
-                    
+
                     $parent.find('.school-box-header').append($searchSchoolCopy.clone());
 
                     //监听搜索框
                     var $schoolSearch = $parent.find('.search-school-input');
                     var $schoolList = $parent.find('.search-school-list');
+                    var $schoolDiv = $parent.find('.search-school-div');
                     var $schoolEmpty = $parent.find('.search-school-empty');
+
                     $schoolSearch.on('input propertychange', function(event) {
+
                         var keywords = $.trim($(this).val());
-                        searchSchool(keywords,$schoolList,$schoolList);
+                        if (keywords.length > 0) {
+                            $schoolDiv.show();
+                        } else {
+                            $schoolDiv.hide();
+                        }
+                        searchSchool(keywords, $schoolList, $schoolEmpty);
 
                     });
                 }
 
-                var searchSchool = function(keywords,$schoolList,$schoolEmpty) {
+                var searchSchool = function(keywords, $schoolList, $schoolEmpty) {
                     var result = [];
                     if (keywords.length > 0) {
                         for (var i = 0; i < provincesLength; i++) {
                             for (var j = 0, target = provinces[i].school; j < target.length; j++) {
                                 if (target[j].name.indexOf(keywords) != '-1') {
-                                    result.push(target[j].name);
+                                    result.push(target[j]);
                                 }
                             }
                         }
                     }
-                    console.log(result)
-                    if (result.length <= 0) {
-                        $schoolEmpty.show();
-                    }
-                    console.log(result.length)
+                    updateSearchList(result, $schoolList, $schoolEmpty);
                 }
 
+                var updateSearchList = function(result, $schoolList, $schoolEmpty) {
+                    $schoolList.empty();
+                    if (result.length == 0) {
+                        $schoolEmpty.show();
+                    } else {
+                        $schoolList.show();
+                        $schoolEmpty.hide();
+                        for (var i = 0; i < result.length; i++) {
+                            $schoolList.append('<li class="school-item" schoolid="' + result[i]['id'] + '">' + result[i]['name'] + '</li>');
+                        }
+                    }
+                }
 
                 var init = function(instance) {
                     var $parent = $(instance.opts.appendTo);
@@ -258,6 +286,15 @@
 
                     var $provinceDiv = $parent.find('.school-box-provinces');
                     var $schoolDiv = $parent.find('.school-box-schools');
+
+                    //判断有没有搜索
+                    if (instance.opts.searchSchool == 'true') {
+                        initSearchSchool(instance);
+                        $searchInput=$parent.find('.search-school-input');
+                        $searchDiv=$parent.find('.search-school-div');
+                    }
+
+                   
 
                     initProvinces($provinceDiv);
 
@@ -271,10 +308,7 @@
 
                     })
 
-                    $schoolDiv.on('click', '.school-item', function() {
-                        // $('.school-box').slideUp();
-                        // $('#schoolInput').val($(this).text());
-                        // $('#schoolId').val($(this).attr('schoolid'));
+                    $parent.on('click', '.school-item', function() {
                         // 自定义事件回调
                         if (instance.opts.schoolClickCallback) {
                             instance.opts.schoolClickCallback.apply(this, []);
@@ -283,15 +317,16 @@
                             schoolId: $(this).attr('schoolid'),
                             schoolName: $(this).text()
                         });
+                        
+                        if($searchInput){
+                            $searchInput.val('');
+                            $searchDiv.hide();
+                        }
+
                         // 自动收起
                         instance.hide();
+                        
                     })
-
-
-                    //判断有没有搜索
-                    if (instance.opts.searchSchool == 'true') {
-                        initSearchSchool(instance);
-                    }
 
                 }
 
