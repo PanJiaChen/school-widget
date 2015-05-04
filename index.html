@@ -151,6 +151,7 @@
     .inline-block {
         display: inline-block;
     }
+
     </style>
 </head>
 
@@ -201,6 +202,10 @@
                 var provincesLength = provinces.length;
                 var $searchInput = $('.search-school-input');
 
+                // Constants
+                var KEY_ENTER = 13;
+                var KEY_UP = 38;
+                var KEY_DOWN = 40;
                 var initProvinces = function($provinceDiv) {
 
                     for (var i = 0; i < provincesLength; i++) {
@@ -236,16 +241,33 @@
                     //监听搜索框
                     var $schoolSearch = $parent.find('.search-school-input');
                     var $schoolList = $parent.find('.search-school-list');
-                    var $schoolDiv = $parent.find('.search-school-div');
+                    var $searchDiv = $parent.find('.search-school-div');
                     var $schoolEmpty = $parent.find('.search-school-empty');
 
-                    $schoolSearch.on('input propertychange', function(event) {
+                    $schoolSearch.on('keyup', function(event) {
+
+                        // 特殊按键（动作键）
+                        if (event.keyCode == KEY_ENTER) {
+                            searchSchoolChosen($schoolList);
+                            return event.preventDefault;
+                        }
+                        if (event.keyCode == KEY_UP) {
+
+                            searchListScrollPrev($searchDiv, $schoolList);
+                            return event.preventDefault;
+                        }
+                        if (event.keyCode == KEY_DOWN) {
+                            console.log($searchDiv.scrollTop())
+                            searchListScrollNext($searchDiv, $schoolList);
+                            return event.preventDefault;
+                        }
+
 
                         var keywords = $.trim($(this).val());
                         if (keywords.length > 0) {
-                            $schoolDiv.show();
+                            $searchDiv.show();
                         } else {
-                            $schoolDiv.hide();
+                            $searchDiv.hide();
                         }
                         searchSchool(keywords, $schoolList, $schoolEmpty);
 
@@ -279,6 +301,52 @@
                     }
                 }
 
+                var searchListScroll = function(isDown,$searchDiv, $searchList) {
+                    var scrollTop = $searchDiv.scrollTop();
+                    var viewMin = scrollTop;
+                    var viewMax = viewMin + $searchDiv.height();
+
+                    var $target = $searchList.children('li.active');
+                    var deltaOffset = $target.offset().top - $searchDiv.offset().top + scrollTop;
+                    isDown && (deltaOffset += $target.height());
+
+                    // deltaOffset要在视窗范围里
+                    if (deltaOffset > viewMax) {
+                        $searchDiv.animate({
+                            scrollTop: scrollTop + deltaOffset - viewMax
+                        }, 'fast');
+                    } else if (deltaOffset < viewMin) {
+                        $searchDiv.animate({
+                            scrollTop: scrollTop - (viewMin - deltaOffset)
+                        }, 'fast');
+                    }
+                };
+
+                var searchListScrollPrev = function($searchDiv, $searchList) {
+                    var $cur = $searchList.children('li.active');
+                    $cur.removeClass && $cur.removeClass('active');
+
+                    if ($cur.length == 0 || $cur.index() == 0) {
+                        $searchList.children('li').last().addClass('active');
+                        searchListScroll(true, $searchDiv, $searchList);
+                    } else {
+                        $searchList.children('li').eq($cur.index() - 1).addClass('active');
+                        searchListScroll(false, $searchDiv, $searchList);
+                    }
+                };
+
+                var searchListScrollNext = function($searchDiv, $searchList) {
+                    var $cur = $searchList.children('li.active');
+                    $cur.removeClass && $cur.removeClass('active');
+
+                    if ($cur.length == 0 || $cur.index() == $searchList.children().length - 1) {
+                        $searchList.children('li').first().addClass('active');
+                        searchListScroll(false, $searchDiv, $searchList);
+                    } else {
+                        $searchList.children('li').eq($cur.index() + 1).addClass('active');
+                        searchListScroll(true, $searchDiv, $searchList);
+                    }
+                };
                 var init = function(instance) {
                     var $parent = $(instance.opts.appendTo);
                     $parent.append($schoolBoxCopy.clone());
@@ -290,11 +358,11 @@
                     //判断有没有搜索
                     if (instance.opts.searchSchool == 'true') {
                         initSearchSchool(instance);
-                        $searchInput=$parent.find('.search-school-input');
-                        $searchDiv=$parent.find('.search-school-div');
+                        $searchInput = $parent.find('.search-school-input');
+                        $searchDiv = $parent.find('.search-school-div');
                     }
 
-                   
+
 
                     initProvinces($provinceDiv);
 
@@ -317,15 +385,15 @@
                             schoolId: $(this).attr('schoolid'),
                             schoolName: $(this).text()
                         });
-                        
-                        if($searchInput){
+
+                        if ($searchInput) {
                             $searchInput.val('');
                             $searchDiv.hide();
                         }
 
                         // 自动收起
                         instance.hide();
-                        
+
                     })
 
                 }
